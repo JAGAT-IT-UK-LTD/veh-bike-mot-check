@@ -1,0 +1,19 @@
+{
+  "success": true,
+  "result": {
+    "date_last_updated": "2024-07-19",
+    "vehicle_registration_mark": "ZZ99ZZZ",
+    "does_vehicle_registration_mark_match": true,
+    "dvla_manufacturer_desc": null,
+    "dvla_model_desc": null,
+    "manufactured_year": null,
+    "is_scrapped": null,
+    "is_imported": null,
+    "is_exported": null,
+    "keeper_changes_qty": null,
+    "finance_data_qty": null,
+    "cherished_data_qty": null,
+    "condition_data_qty": null,
+    "stolen_vehicle_data_qty": null
+  }
+}

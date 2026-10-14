@@ -403,11 +403,30 @@ function rowsTable(rows){
     return '<tr><th style="width:38%">' + esc(r[0]) + '</th><td>' + esc(r[1]) + '</td></tr>';
   }).join('') + '</tbody></table>';
 }
+/* A plate with no vehicle behind it answers 200 with success true and every
+   identity field empty or null. Rendered through paidVerdicts, that reads as a
+   clean car with no finance, no write-off and no theft marker, which is the
+   worst lie a history check can tell someone about to hand over money. So before
+   any all-clear is drawn, confirm the supplier actually found a vehicle. Make,
+   model or year present is proof of a real record; all absent is "no vehicle
+   found", not "nothing against it". (Portable guard from src/history ADAPTER.md.) */
+function vehicleIdentified(r){
+  return !!(r && (r.dvla_manufacturer_desc || r.dvla_model_desc || r.manufactured_year ||
+                  r.make || r.model || r.year_of_manufacture));
+}
+function noVehicleCard(reg){
+  return '<section class="card">' +
+    '<p class="v bad" style="font-size:21px;font-weight:800;margin:0 0 4px">No vehicle found for this registration</p>' +
+    '<p class="meta" style="margin:0">Our licensed data source has no vehicle recorded as <strong>' + esc(reg) + '</strong>. Please check the registration against the V5C logbook. This is <strong>not</strong> the same as the vehicle being clear, so do not read it that way. If the registration is correct, email <a href="mailto:support@jagatitlimited.com">support@jagatitlimited.com</a> with this page&rsquo;s address and we will deliver your report or refund you.</p>' +
+    '</section>';
+}
 function reportPage(reg, supplierJson){
   var j = supplierJson || {};
   var r = j.result && typeof j.result === 'object' ? j.result : null;
   var body;
-  if (r){
+  if (r && !vehicleIdentified(r)){
+    body = noVehicleCard(reg);
+  } else if (r){
     var v = paidVerdicts(r);
     var headline = v.red
       ? '<p class="v bad" style="font-size:21px;font-weight:800;margin:0 0 4px">' + v.red + ' thing' + (v.red > 1 ? 's' : '') + ' to deal with before you buy</p><p class="meta" style="margin:0">Read the red items below. Each one is a question for the seller, not automatically a reason to walk away.</p>'
@@ -1314,7 +1333,7 @@ function send(res, code, type, body, cache){
   res.end(body);
 }
 
-http.createServer(function(req, res){
+var server = http.createServer(function(req, res){
   var raw = req.url || '/';
   var qi = raw.indexOf('?');
   var path = qi === -1 ? raw : raw.slice(0, qi);
@@ -1459,4 +1478,12 @@ http.createServer(function(req, res){
 
   res.writeHead(301, { Location:'/' });
   res.end();
-}).listen(PORT, function(){ console.log('bikemotcheck listening on ' + PORT); });
+});
+
+/* Run as `node server.js` in production (the hPanel container does exactly that),
+   so it listens. When required by a test it does not, which lets the paid-report
+   renderer be checked against recorded fixtures with no network call and no port. */
+if (require.main === module) {
+  server.listen(PORT, function(){ console.log('bikemotcheck listening on ' + PORT); });
+}
+module.exports = { reportPage: reportPage, vehicleIdentified: vehicleIdentified, cleanReg: cleanReg };

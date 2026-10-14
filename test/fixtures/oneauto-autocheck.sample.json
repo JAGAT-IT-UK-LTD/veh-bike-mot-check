@@ -1,0 +1,30 @@
+{
+  "success": true,
+  "result": {
+    "vehicle_registration_mark": "AB21ABC",
+    "dvla_manufacturer_desc": "NISSAN",
+    "dvla_model_desc": "QASHQAI ACENTA PREMIUM DCI",
+    "manufactured_year": 2020,
+    "colour": "WHITE",
+    "dvla_fuel_desc": "DIESEL",
+    "is_scrapped": false,
+    "is_exported": false,
+    "is_imported": true,
+    "keeper_changes_qty": 2,
+    "finance_data_qty": 1,
+    "finance_data_items": [
+      { "agreement_type": "HIRE PURCHASE", "finance_company": "EXAMPLE FINANCE", "agreement_date": "2021-03-02" }
+    ],
+    "cherished_data_qty": 1,
+    "cherished_data_items": [
+      { "previous_vehicle_registration_mark": "AB21ABC", "date_of_transfer": "2022-06-01" }
+    ],
+    "condition_data_qty": 1,
+    "condition_data_items": [
+      { "loss_type": "C", "date_of_loss": "2019-05-04", "insurer_name": "EXAMPLE INSURANCE" }
+    ],
+    "stolen_vehicle_data_qty": 0,
+    "stolen_vehicle_data_items": [],
+    "high_risk_data_qty": 0
+  }
+}
