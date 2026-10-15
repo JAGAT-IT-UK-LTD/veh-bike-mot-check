@@ -1,13 +1,13 @@
 # Project passport: veh-bike-mot-check
 
-> Family: **UK Vehicle Checks** · Owner: @ruhulamin0001 · Completeness: **35%** · Generated 2026-10-15
+> Family: **UK Vehicle Checks** · Owner: @ruhulamin0001 · Completeness: **43%** · Generated 2026-10-15
 > Auto-filled from repo files only; `TBC` = unknown. **Never put secret values here.** Update after every change.
 
 ## Domain & DNS
-bikemotcheckuk.cloud, raw.githubusercontent.com, ico.org.uk (found in repo; verify DNS + registrar)
+bikemotcheckuk.cloud (VERIFIED: routed by Traefik on uk-vps (72.62.213.196, Hostinger srv1569293) 2026-10-15; TLS cert expires 2026-11-19; registrar TBC)
 
 ## Hosting/VPS & deploy
-TBC
+uk-vps (72.62.213.196, Hostinger srv1569293) (Traefik + Docker). Compose project `bikemotcheck`, path `/docker/bikemotcheck (+ motguides container for /guides)`. Containers: see path. Deploy remote: no git checkout in deploy dir (image built from copied source)
 
 ## GitHub
 https://github.com/JAGAT-IT-UK-LTD/veh-bike-mot-check (public), default branch main
@@ -16,7 +16,7 @@ https://github.com/JAGAT-IT-UK-LTD/veh-bike-mot-check (public), default branch m
 Uses design-system: https://github.com/JAGAT-IT-UK-LTD/design-system (logo/colours TBC)
 
 ## Website
-https://bikemotcheckuk.cloud
+https://bikemotcheckuk.cloud (HTTP 200 on 2026-10-15)
 
 ## Email
 TBC
@@ -46,7 +46,7 @@ TBC
 TBC
 
 ## Data store/backups
-TBC
+only server-wide /etc/cron.d/vps-backup (verify contents); no app-specific backup found
 
 ## Marketing
 TBC
