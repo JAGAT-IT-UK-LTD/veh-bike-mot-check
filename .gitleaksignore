@@ -1,0 +1,4 @@
+# gitleaks allowlist (15 Oct 2026). Reviewed: NOT real secrets.
+# Why: INDEXNOW_KEY is public by design (IndexNow serves it at /<key>.txt for search engines)
+# Real secrets must never be allowlisted; rotate them and move them to env instead.
+3d25a667c18d658e8e5d8ec35f71f0c7c9009498:server.js:generic-api-key:530
