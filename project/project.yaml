@@ -1,0 +1,29 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: veh-bike-mot-check
+  title: "veh-bike-mot-check"
+  description: "MOT history checker for bikemotcheckuk.cloud. Node backend, no dependencies. Secrets live in the server environment, never in this repo."
+  annotations:
+    github.com/project-slug: JAGAT-IT-UK-LTD/veh-bike-mot-check
+  tags: []
+spec:
+  type: website
+  lifecycle: production
+  owner: user:ruhulamin0001
+  system: "UK Vehicle Checks"
+x-passport:
+  family: "UK Vehicle Checks"
+  domains: ["bikemotcheckuk.cloud", "raw.githubusercontent.com", "ico.org.uk"]
+  live_url: "https://bikemotcheckuk.cloud"
+  hosting: "TBC"
+  apps: "TBC"
+  payments: "TBC"
+  email: "TBC"
+  database: "TBC"
+  env_names: []
+  ai_agents: ["Claude Code", "GitHub Copilot"]
+  progress: "Last push 2026-10-15. Description: MOT history checker for bikemotcheckuk.cloud. Node backend, no dependencies. Secrets live in the server environment, never in this repo."
+  last_updated: "2026-10-15"
+  updated_by: "Grok Bot (passport generator)"
+  completeness: 35
