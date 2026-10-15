@@ -718,7 +718,7 @@ function footer(){
   '<p>Data covers England, Scotland and Wales. Northern Ireland MOTs are administered by the DVA and are not included. An MOT is a roadworthiness snapshot on the day of the test, not a mechanical warranty, and this site is general information rather than advice on any individual purchase.</p>',
   '<p><a href="/guides">MOT guides</a> &middot; <a href="/compare">Compare two vehicles</a> &middot; <a href="/reminders">MOT reminders</a> &middot; <a href="/recalls">Recall check</a> &middot; <a href="/history-check">Full history check</a> &middot; <a href="/">Run a check</a></p>',
   '<p>Something wrong, out of date, or a vehicle we got wrong? Email <a href="mailto:support@jagatitlimited.com">support@jagatitlimited.com</a> and a person will read it.</p>',
-  '<p><a href="/data-sources">Where our data comes from</a> &middot; <a href="/privacy">Privacy policy</a>' + (PAY_ENABLED ? ' &middot; <a href="/terms">Terms of sale</a> &middot; <a href="/refunds">Refunds</a>' : '') + '</p>',
+  '<p><a href="/data-sources">Where our data comes from</a> &middot; <a href="/privacy">Privacy policy</a> &middot; <a href="/terms">Terms</a>' + (PAY_ENABLED ? ' &middot; <a href="/refunds">Refunds</a>' : '') + '</p>',
   '<p class="meta">Built by Ruhul Amin, Hertfordshire. Figures checked August 2026.</p>',
   '<p class="meta">MOT Check UK is a trading name of Jagat IT UK Ltd, registered in England and Wales, company number 17474995. Registered office: 164 High Street, London Colney, St Albans, Hertfordshire, AL2 1QF.</p>',
   '</div></footer></body></html>'
@@ -930,28 +930,47 @@ function remindersPage(prefill){
    because they describe a product that must not appear before its keys and ICO number
    exist. Drafted from LEGAL-DRAFTS-PAID-LAUNCH.md. ---- */
 function termsPage(){
-  return [
-  head('Terms of Sale | MOT Check UK',
-       'Terms of sale for the paid vehicle history report on MOT Check UK: what you buy, the immediate-delivery consent, and our liability, in plain English.',
-       SITE + '/terms', null),
-  '<main class="wrap">',
-  '<h1>Terms of sale</h1>',
-  '<p class="sub">These cover the paid vehicle history report only. The free MOT checker has no terms to speak of: it is free, we store nothing, and we hope it is useful.</p>',
-  '<section>',
-  '<h2>Who you are buying from</h2>',
+  var sale = PAY_ENABLED ? [
+  '<h2>Buying a paid vehicle history report</h2>',
   '<p>The paid report is sold by Jagat IT UK Ltd, trading as MOT Check UK, registered in England and Wales, company number 17474995, registered office 164 High Street, London Colney, St Albans, Hertfordshire, AL2 1QF. Contact: <a href="mailto:support@jagatitlimited.com">support@jagatitlimited.com</a>.' + (ICO_NUMBER ? ' ICO registration: ' + esc(ICO_NUMBER) + '.' : '') + '</p>',
   '<h2>What you are buying</h2>',
   '<p>A one-off digital report for the registration you enter, compiled at the moment of purchase from licensed third-party databases (outstanding finance, insurance write-off, stolen marker, keeper and plate history, valuation where available) together with the public DVSA MOT record.</p>',
   '<h2>What the report is, and is not</h2>',
   '<p>The report reflects the data held by those sources at the time of the check. It is not a guarantee of a vehicle&rsquo;s condition, history or title, and it does not replace a physical inspection or your own judgement. Data owners occasionally hold errors; where we are told of one, we will tell you.</p>',
-  '<h2>Your 14-day cancellation right, and why you waive it</h2>',
-  '<p>This is a digital product delivered immediately. Before payment you tick a box giving express consent to immediate delivery and acknowledging that you lose the statutory 14-day right to cancel once the report is delivered (Consumer Contracts Regulations 2013). Without that tick, the purchase does not proceed.</p>',
+  '<h2>Your 14 day cancellation right, and why you waive it</h2>',
+  '<p>This is a digital product delivered immediately. Before payment you tick a box giving express consent to immediate delivery and acknowledging that you lose the statutory 14 day right to cancel once the report is delivered (Consumer Contracts Regulations 2013). Without that tick, the purchase does not proceed.</p>',
   '<h2>Refunds</h2>',
   '<p>Covered plainly on the <a href="/refunds">refund policy page</a>: if we cannot deliver your report, we refund.</p>',
   '<h2>The report is licensed to you</h2>',
   '<p>Our data suppliers licence each report to one customer for one vehicle. You may keep it, print it and show it to anyone helping you with that purchase, but you may not resell it or pass it on as a report for someone else&rsquo;s purchase. Anyone with the link can read the report, so treat it as private.</p>',
+  '<h2>Liability on a paid report</h2>',
+  '<p>Nothing here limits liability for fraud, or for death or personal injury caused by negligence. Otherwise our total liability for a report is limited to the price you paid for it.</p>'
+  ].join('') : '';
+  return [
+  head('Terms | MOT Check UK',
+       'The terms for using MOT Check UK in plain English: the free MOT history checker, and the paid vehicle history report where it is offered.',
+       SITE + '/terms', null),
+  '<main class="wrap">',
+  '<h1>Terms</h1>',
+  '<p class="sub">These cover your use of this website: the free MOT history checker and, where it is offered, the paid vehicle history report.</p>',
+  '<section>',
+  '<h2>Who runs this site</h2>',
+  '<p>MOT Check UK is a trading name of Jagat IT UK Ltd, registered in England and Wales, company number 17474995. Registered office: 164 High Street, London Colney, St Albans, Hertfordshire, AL2 1QF. Contact <a href="mailto:support@jagatitlimited.com">support@jagatitlimited.com</a>.' + (ICO_NUMBER ? ' ICO registration: ' + esc(ICO_NUMBER) + '.' : '') + '</p>',
+  '<h2>The free MOT checker</h2>',
+  '<p>The MOT history checker is free, needs no account, and stores none of the registrations you look up. It shows the official DVSA MOT record, which is a roadworthiness snapshot on the day of each test. It is general information, not a mechanical warranty and not advice on any individual purchase.</p>',
+  '<h2>We do not guarantee the data</h2>',
+  '<p>We read the record live from the DVSA MOT History API and show it as given. We do not promise it is complete or current, and the data owner occasionally holds an error. Check anything important against the vehicle and its documents before you rely on it.</p>',
+  '<h2>Coverage</h2>',
+  '<p>The data covers England, Scotland and Wales. Northern Ireland MOTs are administered by the DVA and are not included.</p>',
+  '<h2>Links to other sites</h2>',
+  '<p>Where we link to another website or service we are not responsible for it, its content, or anything you buy from it.</p>',
+  '<h2>Our content</h2>',
+  '<p>The words and design on this site belong to us. You may read them and share a link, but please do not copy the pages wholesale and present them as your own. The MOT data itself comes from the DVSA under the Open Government Licence.</p>',
   '<h2>Liability</h2>',
-  '<p>Nothing here limits liability for fraud, or for death or personal injury caused by negligence. Otherwise our total liability for a report is limited to the price you paid for it.</p>',
+  '<p>Nothing here limits our liability for fraud, or for death or personal injury caused by our negligence. Beyond that, we are not liable for any loss that comes from relying on information on this site.</p>',
+  '<h2>The law that applies</h2>',
+  '<p>These terms are governed by the law of England and Wales.</p>',
+  sale,
   '</section>',
   '</main>', footer()
   ].join('');
@@ -1308,6 +1327,7 @@ const SITEMAP = [
   '<url><loc>' + SITE + '/history-check</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>',
   '<url><loc>' + SITE + '/data-sources</loc><priority>0.4</priority><changefreq>monthly</changefreq></url>',
   '<url><loc>' + SITE + '/privacy</loc><priority>0.3</priority><changefreq>yearly</changefreq></url>',
+  '<url><loc>' + SITE + '/terms</loc><priority>0.3</priority><changefreq>yearly</changefreq></url>',
   '<url><loc>' + SITE + '/trade</loc><priority>0.6</priority><changefreq>monthly</changefreq></url>',
   '</urlset>'
 ].join('');
@@ -1440,10 +1460,7 @@ var server = http.createServer(function(req, res){
       send(res, 502, 'text/plain; charset=utf-8', 'Could not verify the payment. Refresh in a moment.', 'no-store');
     });
   }
-  if(path === '/terms'){
-    if(!PAY_ENABLED){ res.writeHead(302, { Location: '/history-check' }); return res.end(); }
-    return send(res, 200, 'text/html; charset=utf-8', termsPage());
-  }
+  if(path === '/terms') return send(res, 200, 'text/html; charset=utf-8', termsPage());
   if(path === '/refunds'){
     if(!PAY_ENABLED){ res.writeHead(302, { Location: '/history-check' }); return res.end(); }
     return send(res, 200, 'text/html; charset=utf-8', refundsPage());
