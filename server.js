@@ -79,7 +79,7 @@ const HISTORY_KEY_HEADER = process.env.HISTORY_KEY_HEADER || 'x-api-key';
    key moves no real money and takes no real customer's data, so the whole flow can be
    rehearsed before the ICO registration lands. */
 const ICO_NUMBER = process.env.ICO_NUMBER || '';
-const STRIPE_TEST_MODE = STRIPE_KEY.indexOf('sk_test_') === 0;
+const STRIPE_TEST_MODE = /^(sk|rk)_test_/.test(STRIPE_KEY);
 const PAY_ENABLED = !!(STRIPE_KEY && HISTORY_API_KEY && HISTORY_ENDPOINT && (ICO_NUMBER || STRIPE_TEST_MODE));
 const PRICE_SINGLE_PENCE = 399;
 
