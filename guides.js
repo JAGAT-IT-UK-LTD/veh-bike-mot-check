@@ -45,8 +45,17 @@ function loadRemoteGuides(){
     }).on('error', function(e){ console.log('remote guides fetch failed: ' + e.message); });
   } catch(e) { console.log('remote guides outer failed: ' + e.message); }
 }
-loadRemoteGuides();
-setInterval(loadRemoteGuides, 300000);
+/* Static export: GUIDES_STATIC_OUT=<dir> node guides.js renders every route
+   to files and exits. No server, no remote poll. The guides come from the
+   guides-data.json beside this file, so a new guide means a rebuild of the
+   image (Dockerfile.guides) instead of waiting for the five minute poll. */
+var STATIC_OUT = process.env.GUIDES_STATIC_OUT || '';
+if (!STATIC_OUT) {
+  loadRemoteGuides();
+  setInterval(loadRemoteGuides, 300000);
+}
+
+var NOTFOUND;
 
 /* EMO_GUIDES_404: return a real 404 for an unknown guide slug.
    Previously every /guides/anything URL returned 200 with the index page, which is a soft 404.
@@ -56,7 +65,7 @@ setInterval(loadRemoteGuides, 300000);
   if (_h.__emo404) { return; }
   _h.__emo404 = true;
   var _orig = _h.createServer;
-  var NOTFOUND = '<!doctype html><html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Guide not found | MOT Check UK</title><meta name="robots" content="noindex, follow"><style>body{font:16px/1.6 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:0;padding:48px 20px;color:#14201b;background:#f7f9f8}.w{max-width:640px;margin:0 auto}a{color:#0a8f5b}</style></head><body><div class="w"><h1>Guide not found</h1><p>That guide does not exist. It may have been renamed or removed.</p><p><a href="/guides">See all MOT guides</a> or <a href="/">check a vehicle MOT history for free</a>.</p></div></body></html>';
+  NOTFOUND = '<!doctype html><html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Guide not found | MOT Check UK</title><meta name="robots" content="noindex, follow"><style>body{font:16px/1.6 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:0;padding:48px 20px;color:#14201b;background:#f7f9f8}.w{max-width:640px;margin:0 auto}a{color:#0a8f5b}</style></head><body><div class="w"><h1>Guide not found</h1><p>That guide does not exist. It may have been renamed or removed.</p><p><a href="/guides">See all MOT guides</a> or <a href="/">check a vehicle MOT history for free</a>.</p></div></body></html>';
   _h.createServer = function(handler){
     var wrapped = function(req, res){
       try {
@@ -658,7 +667,7 @@ function send(res, code, type, body){
  res.writeHead(code, headers);
  res.end(body);
 }
-http.createServer(function(req, res){
+function handle(req, res){
  var raw = req.url || '/';
  var q = raw.indexOf('?');
  var p = q === -1 ? raw : raw.slice(0, q);
@@ -680,4 +689,27 @@ http.createServer(function(req, res){
  }
  res.writeHead(302, {'Location': '/guides'});
  res.end();
-}).listen(PORT, function(){ console.log('guides on ' + PORT); });
+}
+
+/* Same pages the server sends, written as files for nginx (nginx.guides.conf):
+   guides.html for /guides, guides/<slug>.html for each guide, guides/sitemap.xml,
+   and guides/404.html for the unknown slug page. */
+function buildStatic(out){
+ var fs = require('fs');
+ var path = require('path');
+ applyRemote(fs.readFileSync(path.join(__dirname, 'guides-data.json'), 'utf8'));
+ var dir = path.join(out, 'guides');
+ fs.mkdirSync(dir, { recursive: true });
+ fs.writeFileSync(path.join(out, 'guides.html'), indexPage());
+ fs.writeFileSync(path.join(dir, 'sitemap.xml'), sitemap());
+ fs.writeFileSync(path.join(dir, '404.html'), NOTFOUND);
+ var list = allGuides();
+ list.forEach(function(g){ fs.writeFileSync(path.join(dir, g.slug + '.html'), guidePage(g)); });
+ console.log('static guides written to ' + out + ': ' + list.length + ' guides');
+}
+
+if (STATIC_OUT) {
+ buildStatic(STATIC_OUT);
+} else {
+ http.createServer(handle).listen(PORT, function(){ console.log('guides on ' + PORT); });
+}

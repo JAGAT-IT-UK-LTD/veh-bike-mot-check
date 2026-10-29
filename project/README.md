@@ -59,6 +59,7 @@ Claude Code, GitHub Copilot; last push 2026-10-15
 
 ## Progress
 Last push 2026-10-15. Description: MOT history checker for bikemotcheckuk.cloud. Node backend, no dependencies. Secrets live in the server environment, never in this repo.
+2026-10-29 (Claude Code, Fable 5.1): branch `static-export`, the /guides container (motguides) prepared as a static nginx:alpine image. `GUIDES_STATIC_OUT=<dir> node guides.js` renders the 25 guide pages, sitemap and 404 page to files; `Dockerfile.guides` builds them into nginx; `docker-compose.vps.yml` runs it image only with `mem_limit: 64m` (measured about 4MB against about 17MB for the Node container). Not deployed yet. Trade off: a new guide now needs an image rebuild, the five minute remote poll of guides-data.json is gone in the static build.
 
 ## Competitors
 TBC
