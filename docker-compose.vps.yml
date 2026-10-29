@@ -3,20 +3,26 @@
 # in /docker/bikemotcheck on the box.
 #
 # image only, no build: key (DEPLOY-OFFBOX.md rule). The image comes from
-# Dockerfile.guides built off the box. Traefik on the box runs in host network
+# Dockerfile.guides built off the box. The proxy on the box runs in host network
 # mode and finds this container by its labels; no ports published.
 #
-# Before the first use on the box: compare these labels with the live
-# /docker/motguides/docker-compose.yml and keep the same compose project name
-# (motguides) so the existing network is reused, not a new subnet.
+# Aligned with the live /docker/motguides/docker-compose.yml on the box
+# (29 Oct 2026): same compose project name (motguides, the folder name), same
+# service name (guides), same container_name (motguides), same router name and
+# priority 100, so the existing motguides_default network and the proxy route
+# are reused and nothing else on the box changes. Only the service port moved
+# from 8080 (node) to 80 (nginx). On the box the tag comes from
+# /docker/motguides/.env (IMAGE_TAG=<sha7>).
 services:
-  motguides:
+  guides:
     image: ghcr.io/jagat-it-uk-ltd/veh-bike-mot-check-guides:${IMAGE_TAG:-latest}
+    container_name: motguides
     restart: unless-stopped
     mem_limit: 64m
     labels:
       - traefik.enable=true
       - "traefik.http.routers.motguides.rule=(Host(`bikemotcheckuk.cloud`) || Host(`www.bikemotcheckuk.cloud`)) && PathPrefix(`/guides`)"
+      - traefik.http.routers.motguides.priority=100
       - traefik.http.routers.motguides.entrypoints=websecure
       - traefik.http.routers.motguides.tls.certresolver=letsencrypt
       - traefik.http.services.motguides.loadbalancer.server.port=80
