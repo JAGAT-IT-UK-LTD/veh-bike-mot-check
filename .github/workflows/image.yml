@@ -1,16 +1,16 @@
-# Builds the static /guides image (Dockerfile.guides) on GitHub's runner and pushes it to GHCR as
-# ghcr.io/jagat-it-uk-ltd/veh-bike-mot-check-guides:<sha7>, :<full sha> and :latest. Nothing is built on the VPS
-# (the 19 Oct 2026 OOM outage came from docker builds on the production box) and no image is shipped over ssh:
-# the owner's rule since 29 Oct 2026 is GitHub builds, the box pulls. Recipe: ~/ruhul-app-devo/DEPLOY-OFFBOX.md
-# and the ship-web skill on the owner's Mac.
+# Builds the static /guides image (Dockerfile.guides) on GitHub's runner, pushes it to GHCR, ships it to the UK VPS over
+# ssh and recreates the container there. Nothing is built on the VPS any more (the 19 Oct 2026 OOM outage came from
+# docker builds on the production box). Recipe: ~/ruhul-app-devo/DEPLOY-OFFBOX.md on the owner's Mac.
 #
-# Deploy on uk-vps after a green run (one service, under the shared lock, the proxy is never touched):
-#   cd /docker/motguides && printf 'IMAGE_TAG=<sha7>\n' > .env
-#   flock -w 600 /run/build.lock docker compose pull guides
-#   flock -w 600 /run/build.lock docker compose up -d --no-build --no-deps guides
-# The box needs read access to the package (public package, or a read:packages login on the box).
+# Per repo settings are the env block below. The ssh step needs three repo secrets (set with deploy.sh --secrets <repo>):
+# DEPLOY_SSH_KEY (private key whose public half sits in /root/.ssh/authorized_keys on the box as a forced command that can
+# only run /root/ops/deploy-receive.sh), DEPLOY_KNOWN_HOSTS (ssh-keyscan of the box), DEPLOY_HOST (root@<box ip>).
+# Without them the run still builds and pushes to GHCR and then stops. The GHCR push may fail on storage quota; the ssh
+# ship is the delivery path, so that step does not stop the run.
 #
-# The main checker (server.js) has no image here yet; it still runs from its own compose in /docker/bikemotcheck.
+# This repo's image is the /guides container only (motguides on the box, service guides). The main checker (server.js)
+# has no image here yet. The receiver recreates /root/<PROJECT>/<COMPOSE_FILE>, so the project folder on the box must be
+# /root/motguides with docker-compose.vps.yml from this repo (image: ...-guides:${IMAGE_TAG}).
 name: image
 on:
   push:
@@ -20,6 +20,7 @@ on:
       - guides-data.json
       - Dockerfile.guides
       - nginx.guides.conf
+      - docker-compose.vps.yml
       - .github/workflows/image.yml
   workflow_dispatch: {}
 permissions:
@@ -29,6 +30,10 @@ concurrency:
   group: image-${{ github.ref }}
   cancel-in-progress: false
 env:
+  PROJECT: motguides
+  COMPOSE_FILE: docker-compose.vps.yml
+  SERVICES: guides
+  HEALTHZ: https://bikemotcheckuk.cloud/guides/healthz
   IMAGE: ghcr.io/jagat-it-uk-ltd/veh-bike-mot-check-guides
 jobs:
   build:
@@ -51,20 +56,46 @@ jobs:
             type=raw,value=latest
           labels: |
             org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.source=https://github.com/${{ github.repository }}
-      - name: build Dockerfile.guides (linux/amd64) and push to GHCR
+      - name: build (linux/amd64, BUILD_COMMIT and revision label)
         uses: docker/build-push-action@v6
         with:
           context: .
           file: Dockerfile.guides
           platforms: linux/amd64
-          push: true
+          load: true
+          push: false
           provenance: false
+          build-args: |
+            BUILD_COMMIT=${{ github.sha }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      - name: what was built
+      - name: push to GHCR (private package; a quota failure does not stop the deploy)
+        continue-on-error: true
         run: |
-          echo "${{ steps.meta.outputs.tags }}"
-          echo "deploy on the box: IMAGE_TAG=${GITHUB_SHA::7}"
+          printf '%s\n' "${{ steps.meta.outputs.tags }}" | xargs -rn1 docker push
+      - name: ship to the box over ssh and recreate the container
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          if [ -z "$DEPLOY_SSH_KEY" ] || [ -z "$DEPLOY_HOST" ]; then echo "no deploy secrets on this repo, image built and pushed only"; exit 0; fi
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          IMG="$IMAGE:${GITHUB_SHA::7}"
+          docker image inspect "$IMG" >/dev/null
+          SSH="ssh -i $HOME/.ssh/deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes $DEPLOY_HOST"
+          first=1
+          for svc in $SERVICES; do
+            if [ "$first" = 1 ]; then
+              docker save "$IMG" | gzip -1 | $SSH deploy "$PROJECT" "$IMG" "$COMPOSE_FILE" "$svc" "$HEALTHZ" "$GITHUB_SHA"
+            else
+              $SSH redeploy "$PROJECT" "$IMG" "$COMPOSE_FILE" "$svc" "-" "$GITHUB_SHA"
+            fi
+            first=0
+          done
+      - name: what was built
+        run: echo "${{ steps.meta.outputs.tags }}"
