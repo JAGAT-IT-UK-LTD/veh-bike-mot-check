@@ -1,0 +1,22 @@
+# VPS compose for motguides only, the /guides prefix of bikemotcheckuk.cloud.
+# The main checker (server.js) is not in this file; it keeps its own compose
+# in /docker/bikemotcheck on the box.
+#
+# image only, no build: key (DEPLOY-OFFBOX.md rule). The image comes from
+# Dockerfile.guides built off the box. Traefik on the box runs in host network
+# mode and finds this container by its labels; no ports published.
+#
+# Before the first use on the box: compare these labels with the live
+# /docker/motguides/docker-compose.yml and keep the same compose project name
+# (motguides) so the existing network is reused, not a new subnet.
+services:
+  motguides:
+    image: ghcr.io/jagat-it-uk-ltd/veh-bike-mot-check-guides:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    mem_limit: 64m
+    labels:
+      - traefik.enable=true
+      - "traefik.http.routers.motguides.rule=(Host(`bikemotcheckuk.cloud`) || Host(`www.bikemotcheckuk.cloud`)) && PathPrefix(`/guides`)"
+      - traefik.http.routers.motguides.entrypoints=websecure
+      - traefik.http.routers.motguides.tls.certresolver=letsencrypt
+      - traefik.http.services.motguides.loadbalancer.server.port=80

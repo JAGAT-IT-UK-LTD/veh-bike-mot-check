@@ -1,0 +1,18 @@
+# The /guides container (motguides on uk-vps) as a static site. Node only at
+# build time to render the pages, then nginx:alpine serves the files.
+# Build off the box only (DEPLOY-OFFBOX.md), never on uk-vps:
+#   docker build -f Dockerfile.guides -t ghcr.io/jagat-it-uk-ltd/veh-bike-mot-check-guides:<sha7> .
+# No secrets, no env, no network at runtime.
+FROM node:20-alpine AS build
+WORKDIR /src
+COPY guides.js guides-data.json ./
+RUN GUIDES_STATIC_OUT=/out node guides.js
+
+FROM nginx:alpine
+# One worker is plenty for a few static pages; "auto" starts one per CPU and
+# each one costs memory on the shared box.
+RUN sed -i 's/^worker_processes .*/worker_processes 1;/' /etc/nginx/nginx.conf
+COPY nginx.guides.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /out /usr/share/nginx/html
+EXPOSE 80
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD wget -qO- http://127.0.0.1/guides/healthz >/dev/null || exit 1
