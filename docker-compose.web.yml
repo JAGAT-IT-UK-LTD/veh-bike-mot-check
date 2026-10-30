@@ -1,0 +1,34 @@
+# VPS compose for the main checker (server.js) of bikemotcheckuk.cloud. The /guides prefix is a separate container
+# (docker-compose.vps.yml, project motguides).
+#
+# Image only, no build key. The image is built by .github/workflows/image-web.yml on GitHub, shipped over ssh and loaded
+# by /root/ops/deploy-receive.sh, which writes IMAGE_TAG=<short sha> into /root/bikemotcheck/.env.
+#
+# Lives on the box as /root/bikemotcheck/docker-compose.web.yml. The folder name gives the compose project name
+# bikemotcheck, the same project the hPanel compose in /docker/bikemotcheck used, and the service and container names
+# are the same too, so the existing bikemotcheck_default network and the proxy route carry over and the old container is
+# replaced in place. Once this file is live, nobody presses Deploy in hPanel again (it would put the old compose back).
+# Rollback to the hPanel line: cd /docker/bikemotcheck && docker compose up -d
+#
+# Secrets (DVSA, Stripe, history supplier, ICO number) are in /root/bikemotcheck/.env on the box, copied from the hPanel
+# compose by name. Nothing secret is in this public repo.
+services:
+  motcheck:
+    image: ghcr.io/jagat-it-uk-ltd/veh-bike-mot-check:${IMAGE_TAG:-latest}
+    container_name: bikemotcheck
+    restart: unless-stopped
+    env_file: .env
+    mem_limit: 256m
+    memswap_limit: 384m
+    pids_limit: 64
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    labels:
+      - traefik.enable=true
+      - "traefik.http.routers.bikemotcheck.rule=Host(`bikemotcheckuk.cloud`) || Host(`www.bikemotcheckuk.cloud`)"
+      - traefik.http.routers.bikemotcheck.entrypoints=websecure
+      - traefik.http.routers.bikemotcheck.tls.certresolver=letsencrypt
+      - traefik.http.services.bikemotcheck.loadbalancer.server.port=8080
