@@ -4,10 +4,10 @@
 > Auto-filled from repo files only; `TBC` = unknown. **Never put secret values here.** Update after every change.
 
 ## Domain & DNS
-bikemotcheckuk.cloud (VERIFIED: routed by Traefik on uk-vps (72.62.213.196, Hostinger srv1569293) 2026-10-15; TLS cert expires 2026-11-19; registrar TBC)
+bikemotcheckuk.cloud (VERIFIED: routed by Traefik on uk-vps 2026-10-15; TLS cert expires 2026-11-19; registrar TBC)
 
 ## Hosting/VPS & deploy
-uk-vps (72.62.213.196, Hostinger srv1569293) (Traefik + Docker). Compose project `bikemotcheck`, path `/docker/bikemotcheck (+ motguides container for /guides)`. Containers: see path. Deploy remote: no git checkout in deploy dir (image built from copied source)
+uk-vps (Traefik + Docker). Compose project `bikemotcheck`, path `/docker/bikemotcheck (+ motguides container for /guides)`. Containers: see path. Deploy remote: no git checkout in deploy dir (image built from copied source)
 
 ## GitHub
 https://github.com/JAGAT-IT-UK-LTD/veh-bike-mot-check (public), default branch main
@@ -59,6 +59,7 @@ Claude Code, GitHub Copilot; last push 2026-10-15
 
 ## Progress
 Last push 2026-10-15. Description: MOT history checker for bikemotcheckuk.cloud. Node backend, no dependencies. Secrets live in the server environment, never in this repo.
+2026-10-30 (Claude Code, Opus 5.5): six docs in `docs/` (PRD, TRD, APPFLOW, DESIGN-BRIEF, SCHEMA, PLAN, SPEC). Main checker gets its own image pipeline: `Dockerfile` (node plus three files, BUILD_COMMIT), `docker-compose.web.yml` (image only, project and container `bikemotcheck`, 256m), `.github/workflows/image-web.yml` (fixture test, build, smoke, ship only on dispatch), `/healthz` now carries the commit. Server address removed from this public passport. The paid report guard against a plate with no vehicle (c8f5909) has been live since 15 Oct (live SHA 6ac3566).
 2026-10-29 (Claude Code, Fable 5.1): branch `static-export`, the /guides container (motguides) prepared as a static nginx:alpine image. `GUIDES_STATIC_OUT=<dir> node guides.js` renders the 25 guide pages, sitemap and 404 page to files; `Dockerfile.guides` builds them into nginx; `docker-compose.vps.yml` runs it image only with `mem_limit: 64m` (measured about 4MB against about 17MB for the Node container). Not deployed yet. Trade off: a new guide now needs an image rebuild, the five minute remote poll of guides-data.json is gone in the static build.
 
 ## Competitors

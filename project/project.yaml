@@ -16,16 +16,16 @@ x-passport:
   family: "UK Vehicle Checks"
   domains: ["bikemotcheckuk.cloud"]
   live_url: "https://bikemotcheckuk.cloud (HTTP 200 on 2026-10-15)"
-  hosting: "uk-vps (72.62.213.196, Hostinger srv1569293) (Traefik + Docker). Compose project `bikemotcheck`, path `/docker/bikemotcheck (+ motguides container for /guides)`. Containers: see path. Deploy remote: no git checkout in deploy dir (image built from copied source)"
+  hosting: "uk-vps (Traefik + Docker). Compose project `bikemotcheck`, path `/docker/bikemotcheck (+ motguides container for /guides)`. Containers: see path. Deploy remote: no git checkout in deploy dir (image built from copied source)"
   apps: "TBC"
   payments: "TBC"
   email: "TBC"
   database: "TBC"
   env_names: []
   ai_agents: ["Claude Code", "GitHub Copilot"]
-  progress: "2026-10-29: static-export branch, /guides (motguides) prepared as a static nginx:alpine image (Dockerfile.guides, nginx.guides.conf, docker-compose.vps.yml image only, mem_limit 64m, about 4MB measured). Not deployed yet. Before: MOT history checker for bikemotcheckuk.cloud. Node backend, no dependencies. Secrets live in the server environment, never in this repo."
-  last_updated: "2026-10-29"
-  server: "uk-vps (72.62.213.196, Hostinger srv1569293)"
+  progress: "2026-10-30 (Claude Code, Opus 5.5): six docs in docs/, main checker image pipeline (Dockerfile, docker-compose.web.yml, image-web.yml), healthz carries the commit, server address removed from this public file. 2026-10-29: static-export branch, /guides (motguides) prepared as a static nginx:alpine image (Dockerfile.guides, nginx.guides.conf, docker-compose.vps.yml image only, mem_limit 64m, about 4MB measured). Not deployed yet. Before: MOT history checker for bikemotcheckuk.cloud. Node backend, no dependencies. Secrets live in the server environment, never in this repo."
+  last_updated: "2026-10-30"
+  server: "uk-vps"
   deploy_path: "/docker/bikemotcheck (+ motguides container for /guides)"
   cert_expiry: "2026-11-19"
   backups: "No app-specific backup. Server-wide: nightly /root/ops/backup-databases.sh (every DB, keep 7) + backup-vps.sh (configs, keep 7) into /root/backups on the same disk. Off-site since 15 Oct 2026: nightly 04:30 age-encrypted archive \u2192 bd-vps `/srv/offsite/uk-vps` (14 days, sha256 + restore self-test). Cloudflare R2 third copy live since 16 Oct 2026 (encrypted, 7 days)."

@@ -1367,7 +1367,7 @@ var server = http.createServer(function(req, res){
   }
   var params = new URLSearchParams(query);
 
-  if(path === '/healthz') return send(res, 200, 'application/json', JSON.stringify({ ok:true, cached:Object.keys(cache).length }), 'no-store');
+  if(path === '/healthz') return send(res, 200, 'application/json', JSON.stringify({ ok:true, cached:Object.keys(cache).length, commit:String(process.env.BUILD_COMMIT || 'dev').slice(0, 7) }), 'no-store');
   if(path === '/' + INDEXNOW_KEY + '.txt') return send(res, 200, 'text/plain; charset=utf-8', INDEXNOW_KEY, 'public, max-age=86400');
   if(path === '/robots.txt') return send(res, 200, 'text/plain; charset=utf-8', ROBOTS, 'public, max-age=3600');
   if(path === '/sitemap.xml') return send(res, 200, 'application/xml; charset=utf-8', SITEMAP, 'public, max-age=3600');
