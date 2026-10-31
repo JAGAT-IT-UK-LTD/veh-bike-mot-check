@@ -4,10 +4,10 @@
 > Auto-filled from repo files only; `TBC` = unknown. **Never put secret values here.** Update after every change.
 
 ## Domain & DNS
-bikemotcheckuk.cloud (VERIFIED: routed by Traefik on uk-vps (72.62.213.196, Hostinger srv1569293) 2026-10-15; TLS cert expires 2026-11-19; registrar TBC)
+bikemotcheckuk.cloud (VERIFIED: routed by Traefik on uk-vps 2026-10-15; TLS cert expires 2026-11-19; registrar TBC)
 
 ## Hosting/VPS & deploy
-uk-vps (72.62.213.196, Hostinger srv1569293) (Traefik + Docker). Compose project `bikemotcheck`, path `/docker/bikemotcheck (+ motguides container for /guides)`. Containers: see path. Deploy remote: no git checkout in deploy dir (image built from copied source)
+uk-vps (Traefik + Docker). Compose project `bikemotcheck`, path `/docker/bikemotcheck (+ motguides container for /guides)`. Containers: see path. Deploy remote: no git checkout in deploy dir (image built from copied source)
 
 ## GitHub
 https://github.com/JAGAT-IT-UK-LTD/veh-bike-mot-check (public), default branch main
