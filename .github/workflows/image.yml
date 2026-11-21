@@ -83,6 +83,7 @@ jobs:
         run: |
           if [ -z "$DEPLOY_SSH_KEY" ] || [ -z "$DEPLOY_HOST" ]; then echo "no deploy secrets on this repo, image built and pushed only"; exit 0; fi
           mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          # UNIVERSAL-UPDATE ১০: the deploy key and known_hosts live only in these per run files under $RUNNER_TEMP
           KEY="$RUNNER_TEMP/deploy-$GITHUB_RUN_ID"; KH="$RUNNER_TEMP/known-$GITHUB_RUN_ID"  # per run files, never the shared ~/.ssh (UNIVERSAL-UPDATE 10)
           printf '%s\n' "$DEPLOY_SSH_KEY" > "$KEY" && chmod 600 "$KEY"
           printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$KH"
