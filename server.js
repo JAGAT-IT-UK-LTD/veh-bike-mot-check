@@ -220,7 +220,8 @@ function stripeReq(method, apiPath, params){
 /* One checkout session per purchase; the reg travels in metadata and comes back
    when /report verifies the session. Same shape as SponsorJobUK's flow. */
 function createCheckout(reg){
-  return stripeReq('POST', '/v1/checkout/sessions', {
+  return stripeReq('POST', '/v1/checkout/sessions', { "payment_method_types[0]": "card", // card only, Stripe Link off (R, H-6)
+ 
     'mode': 'payment',
     'line_items[0][quantity]': '1',
     'line_items[0][price_data][currency]': 'gbp',
