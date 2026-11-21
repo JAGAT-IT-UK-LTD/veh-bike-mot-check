@@ -83,11 +83,12 @@ jobs:
         run: |
           if [ -z "$DEPLOY_SSH_KEY" ] || [ -z "$DEPLOY_HOST" ]; then echo "no deploy secrets on this repo, image built and pushed only"; exit 0; fi
           mkdir -p ~/.ssh && chmod 700 ~/.ssh
-          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy
-          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          KEY="$RUNNER_TEMP/deploy-$GITHUB_RUN_ID"; KH="$RUNNER_TEMP/known-$GITHUB_RUN_ID"  # per run files, never the shared ~/.ssh (UNIVERSAL-UPDATE 10)
+          printf '%s\n' "$DEPLOY_SSH_KEY" > "$KEY" && chmod 600 "$KEY"
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$KH"
           IMG="$IMAGE:${GITHUB_SHA::7}"
           docker image inspect "$IMG" >/dev/null
-          SSH="ssh -i $HOME/.ssh/deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes $DEPLOY_HOST"
+          SSH="ssh -i $KEY -o IdentitiesOnly=yes -o UserKnownHostsFile=$KH -o StrictHostKeyChecking=yes $DEPLOY_HOST"
           first=1
           for svc in $SERVICES; do
             if [ "$first" = 1 ]; then
