@@ -59,6 +59,7 @@ Claude Code, GitHub Copilot; last push 2026-10-15
 
 ## Progress
 Last push 2026-10-15. Description: MOT history checker for bikemotcheckuk.cloud. Node backend, no dependencies. Secrets live in the server environment, never in this repo.
+2026-10-30 (Claude Code, Opus 5.5): six docs in `docs/` (PRD, TRD, APPFLOW, DESIGN-BRIEF, SCHEMA, PLAN, SPEC). Main checker gets its own image pipeline: `Dockerfile` (node plus three files, BUILD_COMMIT), `docker-compose.web.yml` (image only, project and container `bikemotcheck`, 256m), `.github/workflows/image-web.yml` (fixture test, build, smoke, ship only on dispatch), `/healthz` now carries the commit. Server address removed from this public passport. The paid report guard against a plate with no vehicle (c8f5909) has been live since 15 Oct (live SHA 6ac3566).
 2026-10-29 (Claude Code, Fable 5.1): branch `static-export`, the /guides container (motguides) prepared as a static nginx:alpine image. `GUIDES_STATIC_OUT=<dir> node guides.js` renders the 25 guide pages, sitemap and 404 page to files; `Dockerfile.guides` builds them into nginx; `docker-compose.vps.yml` runs it image only with `mem_limit: 64m` (measured about 4MB against about 17MB for the Node container). Not deployed yet. Trade off: a new guide now needs an image rebuild, the five minute remote poll of guides-data.json is gone in the static build.
 
 ## Competitors

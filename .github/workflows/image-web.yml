@@ -1,0 +1,114 @@
+# The main checker (server.js) image. Runs the fixture test, builds on GitHub's runner, smoke tests the image (home 200
+# and /healthz carrying this commit), pushes to GHCR and, only on a deliberate run on main, ships it to the UK VPS over
+# ssh where /root/ops/deploy-receive.sh loads it and recreates the container. Nothing is built on the VPS. Pull requests
+# get the test and the smoke only, so a merge never deploys by itself. The /guides container has its own image.yml.
+#
+# The ssh step uses the repo secrets DEPLOY_SSH_KEY, DEPLOY_KNOWN_HOSTS, DEPLOY_HOST (set by the owner with
+# deploy.sh --secrets). The box side expects /root/bikemotcheck/docker-compose.web.yml and its .env (PLAN M3).
+#
+# Nothing here reaches a paid supplier: the test reads recorded fixtures, and the smoke container has no supplier key.
+name: image-web
+on:
+  workflow_dispatch: {}
+  pull_request:
+    paths:
+      - server.js
+      - client.js
+      - assets.b64
+      - Dockerfile
+      - docker-compose.web.yml
+      - test/**
+      - .github/workflows/image-web.yml
+permissions:
+  contents: read
+  packages: write
+concurrency:
+  group: image-web-${{ github.ref }}
+  cancel-in-progress: false
+env:
+  PROJECT: bikemotcheck
+  COMPOSE_FILE: docker-compose.web.yml
+  SERVICES: motcheck
+  HEALTHZ: https://bikemotcheckuk.cloud/healthz
+  IMAGE: ghcr.io/jagat-it-uk-ltd/veh-bike-mot-check
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: paid report test, recorded fixtures, no network
+        run: node test/history.test.js
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        if: github.event_name != 'pull_request'
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=raw,value=${{ github.sha }}
+            type=sha,prefix=,format=short
+            type=raw,value=latest,enable={{is_default_branch}}
+          labels: |
+            org.opencontainers.image.revision=${{ github.sha }}
+      - name: build (linux/amd64, BUILD_COMMIT and revision label)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          platforms: linux/amd64
+          load: true
+          push: false
+          provenance: false
+          build-args: |
+            BUILD_COMMIT=${{ github.sha }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: smoke, home answers 200 and /healthz carries this commit
+        run: |
+          IMG="$IMAGE:${GITHUB_SHA::7}"
+          docker run -d --name smoke -p 127.0.0.1:8080:8080 "$IMG"
+          body=""
+          for i in $(seq 1 20); do
+            body=$(curl -fsS http://127.0.0.1:8080/healthz 2>/dev/null) && break
+            sleep 1
+          done
+          home=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/ || true)
+          docker logs smoke 2>&1 | tail -10
+          echo "healthz: $body"
+          echo "home: $home"
+          docker rm -f smoke >/dev/null
+          echo "$body" | grep -q "\"commit\":\"${GITHUB_SHA::7}\""
+          test "$home" = 200
+      - name: push to GHCR (a quota failure does not stop the deploy)
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        run: |
+          printf '%s\n' "${{ steps.meta.outputs.tags }}" | xargs -rn1 docker push
+      - name: ship to the box over ssh and recreate the container
+        if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          if [ -z "$DEPLOY_SSH_KEY" ] || [ -z "$DEPLOY_HOST" ]; then echo "no deploy secrets on this repo, image built and pushed only"; exit 0; fi
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          IMG="$IMAGE:${GITHUB_SHA::7}"
+          docker image inspect "$IMG" >/dev/null
+          SSH="ssh -i $HOME/.ssh/deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes $DEPLOY_HOST"
+          docker save "$IMG" | gzip -1 | $SSH deploy "$PROJECT" "$IMG" "$COMPOSE_FILE" "$SERVICES" "$HEALTHZ" "$GITHUB_SHA"
+      - name: what was built
+        run: echo "${{ steps.meta.outputs.tags }}"
