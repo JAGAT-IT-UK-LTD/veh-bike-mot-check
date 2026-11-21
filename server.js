@@ -536,6 +536,11 @@ const CSS = [
 '.brand svg{width:30px;height:30px;border-radius:9px;display:block}',
 '.nav{display:flex;gap:18px;align-items:center;font-size:14.5px}',
 '.nav a{color:var(--mut);text-decoration:none;font-weight:600}.nav a:hover{color:var(--ink)}',
+/* Phones: five links did not fit beside the brand, so the whole page was 459px wide at 375 and scrolled sideways
+   (found 21 Nov 2026). The brand stays on one line and the links scroll inside the nav instead of widening the page. */
+'@media(max-width:560px){header.site .wrap{gap:12px;padding:10px 14px}.brand{flex:0 0 auto;white-space:nowrap}',
+'.nav{min-width:0;gap:14px;font-size:13.5px;overflow-x:auto;white-space:nowrap;scrollbar-width:none;-webkit-overflow-scrolling:touch}',
+'.nav::-webkit-scrollbar{display:none}.nav a{flex:0 0 auto}}',
 '.hero{padding:56px 0 12px;text-align:center}',
 'h1{font-size:clamp(30px,5.4vw,52px);line-height:1.06;letter-spacing:-.035em;margin:0 0 14px;font-weight:800}',
 '.grad{background:linear-gradient(100deg,var(--i1),var(--i2) 45%,var(--i3));-webkit-background-clip:text;background-clip:text;color:transparent}',
